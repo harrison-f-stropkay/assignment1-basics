@@ -1,9 +1,12 @@
 import os
+import pickle
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from multiprocessing import Pool
+from pathlib import Path
 
 import regex as re
+from tqdm import tqdm
 
 from cs336_basics.pretokenization_example import find_chunk_boundaries
 
@@ -45,6 +48,7 @@ def pretokenize(
 
 
 def get_most_common_pair(pair_counter: Counter[tuple[bytes, bytes]]) -> tuple[bytes, bytes]:
+    # Note: I tried splitting pair_counter for multiprocessing, but that was far slower
     return max(pair_counter, key=lambda pair: (pair_counter[pair], pair))
 
 
@@ -103,8 +107,8 @@ def get_pair_to_pretokens(pseqs: Iterable[tuple[bytes, ...]]) -> defaultdict[tup
     return pair_to_pretokens
 
 
-def get_pairs(pseq: tuple[bytes, ...]) -> tuple[tuple[bytes, bytes]]:
-    return tuple(pair for pair in zip(pseq[:-1], pseq[1:]))
+def get_pairs(seq: tuple | list) -> tuple:
+    return tuple(pair for pair in zip(seq[:-1], seq[1:]))
 
 
 def update_caches(
@@ -166,11 +170,14 @@ def train_bpe(
     pair_to_pretokens = get_pair_to_pretokens(pseq_counter.keys())
     pair_counter = get_pair_counter(pseq_counter)
 
-    while len(vocab) < vocab_size:
+    for i in tqdm(range(vocab_size), desc="Training BPE Tokenenizer"):
+        if i < 256 + len(special_tokens):
+            continue
+
         merge_pair = get_most_common_pair(pair_counter)
         new_token = b"".join(merge_pair)
         merges.append(merge_pair)
-        vocab[max(vocab) + 1] = new_token
+        vocab[i] = new_token
 
         update_caches(
             merge_pair,
@@ -181,3 +188,23 @@ def train_bpe(
         )
 
     return vocab, merges
+
+
+if __name__ == "__main__":
+    CORPUS_FILENAME = "owt_train.txt"
+    # CORPUS_FILENAME = "TinyStoriesV2-GPT4-train.txt"
+
+    DATA_DIR = Path(__file__).parents[1] / "data"
+
+    input_path = DATA_DIR / CORPUS_FILENAME
+    vocab_size = 32000
+    special_tokens = ["<|endoftext|>"]
+
+    vocab, merges = train_bpe(input_path, vocab_size, special_tokens)
+
+    with open((DATA_DIR / f"{CORPUS_FILENAME}_vocab_merges.pkl"), "wb") as f:
+        pickle.dump(((vocab, merges)), f)
+
+    # longest_token = max(vocab.values(), key=len)
+    # print(f"Longest token: {longest_token}")
+    # Note: it was b' accomplishment'
