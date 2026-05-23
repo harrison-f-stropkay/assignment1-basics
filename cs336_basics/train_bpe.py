@@ -190,21 +190,43 @@ def train_bpe(
     return vocab, merges
 
 
-if __name__ == "__main__":
-    CORPUS_FILENAME = "owt_train.txt"
-    # CORPUS_FILENAME = "TinyStoriesV2-GPT4-train.txt"
-
+def main(corpus_filestem: str, vocab_size: int, special_tokens):
     DATA_DIR = Path(__file__).parents[1] / "data"
+    CORPUS_PATH = DATA_DIR / f"{corpus_filestem}.txt"
+    VOCAB_MERGES_PATH = DATA_DIR / f"{corpus_filestem}_vocab_merges.pkl"
 
-    input_path = DATA_DIR / CORPUS_FILENAME
-    vocab_size = 32000
-    special_tokens = ["<|endoftext|>"]
-
-    vocab, merges = train_bpe(input_path, vocab_size, special_tokens)
-
-    with open((DATA_DIR / f"{CORPUS_FILENAME}_vocab_merges.pkl"), "wb") as f:
-        pickle.dump(((vocab, merges)), f)
+    vocab, merges = train_bpe(CORPUS_PATH, vocab_size, special_tokens)
 
     # longest_token = max(vocab.values(), key=len)
     # print(f"Longest token: {longest_token}")
-    # Note: it was b' accomplishment'
+    # Output: b' accomplishment'
+
+    with open((VOCAB_MERGES_PATH), "wb") as f:
+        pickle.dump(((vocab, merges)), f)
+
+
+if __name__ == "__main__":
+    CORPUS_FILESTEM = "owt_train.txt"
+    CORPUS_FILESTEM = "TinyStoriesV2-GPT4-train"
+    VOCAB_SIZE = 10000
+    SPECIAL_TOKENS = ["<|endoftext|>"]
+
+    main(CORPUS_FILESTEM, VOCAB_SIZE, SPECIAL_TOKENS)
+
+    # DATA_DIR = Path(__file__).parents[1] / "data"
+    # OWT_FILESTEM = "owt_train"
+    # TINY_FILESTEM = "TinyStoriesV2-GPT4-train"
+
+    # TINY_VOCAB_MERGES_PATH = DATA_DIR / f"{TINY_FILESTEM}_vocab_merges.pkl"
+    # with open((TINY_VOCAB_MERGES_PATH), "rb") as f:
+    #     tiny_vocab, tiny_merges = pickle.load(f)
+
+    # OWT_VOCAB_MERGES_PATH = DATA_DIR / f"{OWT_FILESTEM}_vocab_merges.pkl"
+    # with open((OWT_VOCAB_MERGES_PATH), "rb") as f:
+    #     owt_vocab, owt_merges = pickle.load(f)
+
+    # owt_10k = [owt_vocab[i] for i in range(10000)]
+    # tiny_10k = [tiny_vocab[i] for i in range(10000)]
+
+    # print(f"{len(set(owt_10k) - set(tiny_10k)) / 100}% overlap")
+    # # Output: 54.4% overlap
