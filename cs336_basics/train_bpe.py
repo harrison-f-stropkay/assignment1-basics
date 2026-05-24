@@ -228,5 +228,14 @@ if __name__ == "__main__":
     # owt_10k = [owt_vocab[i] for i in range(10000)]
     # tiny_10k = [tiny_vocab[i] for i in range(10000)]
 
-    # print(f"{len(set(owt_10k) - set(tiny_10k)) / 100}% overlap")
-    # # Output: 54.4% overlap
+    # print(f"{(len(set(tiny_10k) & set(owt_10k)) / 10000) * 100}% overlap with the first 10k of OWT")
+    # # 45.6% overlap with the first 10k of OWT
+
+    # print(f"{(len(set(tiny_10k) & set(owt_vocab.values())) / 10000) * 100}% overlap with all of OWT")
+    # # 73.2% overlap with all of OWT
+
+    # print(f"{list(set(tiny_10k) - set(owt_vocab.values()))[:20]}")
+    # # [b' Janie', b' tuck', b' lollipop', b' bandages', b' comf', b'Pepper', b' disappoin', b'Ol', b' donkey', b' Flora', b' glided', b' strang', b' tangled', b' scooters', b' Daisy', b' frosting', b' gobbled', b'bbie', b' croaked', b' forgets']
+
+    # print(f"{list(set(owt_vocab.values()) - set(tiny_10k))[:20]}")
+    # # [b'NP', b' experts', b' Schwe', b' title', b' fewer', b' Brooks', b' unlimited', b' Download', b' Mold', b'PP', b' neurolog', b' Tam', b'nes', b' WILL', b'ander', b' Bless', b' Assassin', b' dispens', b' rank', b'ci']
