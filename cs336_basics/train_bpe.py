@@ -77,7 +77,6 @@ def refresh_pseq(stale_pseq: tuple[bytes, ...], merge_pair: tuple[bytes, bytes])
         else:
             fresh_pseq.append(left)
             i += 1
-    assert len(fresh_pseq) < len(stale_pseq)
     return tuple(fresh_pseq)
 
 

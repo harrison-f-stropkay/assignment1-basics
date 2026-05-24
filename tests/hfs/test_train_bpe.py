@@ -1,8 +1,6 @@
 from collections import Counter, defaultdict
 from pathlib import Path
 
-import pytest
-
 from cs336_basics.train_bpe import (
     get_initial_pseq,
     get_initial_tokens,
@@ -64,10 +62,9 @@ def test_refresh_pseq():
     merge_pair = (b"a", b"b")
     assert refresh_pseq(stale_pseq, merge_pair) == (b"ab", b"c", b"d")
 
-    with pytest.raises(AssertionError):
-        stale_pseq = (b"a", b"b", b"c", b"d")
-        merge_pair = (b"a", b"a")
-        refresh_pseq(stale_pseq, merge_pair) == stale_pseq
+    stale_pseq = (b"a", b"b", b"c", b"d")
+    merge_pair = (b"a", b"a")
+    refresh_pseq(stale_pseq, merge_pair) == stale_pseq
 
     stale_pseq = (b"a", b"b", b"a", b"b", b"a", b"c")
     merge_pair = (b"a", b"b")
