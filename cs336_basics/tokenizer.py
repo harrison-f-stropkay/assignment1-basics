@@ -72,8 +72,34 @@ class Tokenizer:
         return encoding
 
     def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
-        for string in iterable:
-            yield from self.encode(string)
+        if self.special_tokens:
+            special_tokens_pattern = b"|".join([re.escape(special) for special in self.special_tokens])
+
+        iterator = iter(iterable)
+        buffer = bytes(next(iterator), "utf-8")
+
+        while buffer:
+            # Top off the buffer (load at least 1000 code points, if possible)
+            while len(buffer) < 1000:
+                try:
+                    buffer += bytes(next(iterator), "utf-8")
+                except StopIteration:
+                    break
+
+            # If we find a special token, yield from it and everything before it
+            if self.special_tokens and (match := re.search(special_tokens_pattern, buffer)):
+                bytes_before_match = buffer[: match.start()]
+                buffer = buffer[match.end() :]
+                yield from self._encode_split(bytes_before_match)
+                yield self.token_to_token_id[match.group()]
+
+            # Otherwise, just yield from the first pretoken from the buffer
+            else:
+                match = re.match(PAT, buffer)
+                assert match
+                assert buffer.startswith(match.group())
+                buffer = buffer[match.end() :]
+                yield from self._encode_pretoken(match.group())
 
     def decode(self, ids: list[int]) -> str:
         tokens = [self.vocab[id] for id in ids]
