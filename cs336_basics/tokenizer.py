@@ -1,4 +1,4 @@
-from functools import lru_cache
+from methodtools import lru_cache  # Use `methodtools` so that caches are not shared between class instances
 import os
 import pickle
 from collections.abc import Iterable, Iterator
