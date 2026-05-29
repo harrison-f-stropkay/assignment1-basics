@@ -1,3 +1,4 @@
+from typing import Final
 from methodtools import lru_cache  # Use `methodtools` so that caches are not shared between class instances
 import os
 import pickle
@@ -23,6 +24,9 @@ class Tokenizer:
             [bytes(special_token, "utf-8") for special_token in sorted(special_tokens, reverse=True)]
             if special_tokens
             else None
+        )
+        self.special_tokens_pattern: Final[bytes | None] = (
+            b"|".join([re.escape(special) for special in self.special_tokens]) if self.special_tokens else None
         )
         if self.special_tokens:
             for special_token in self.special_tokens:
@@ -56,10 +60,9 @@ class Tokenizer:
     def encode(self, text: str) -> list[int]:
         bytestring = bytes(text, "utf-8")
 
-        if self.special_tokens:
-            special_tokens_pattern = b"|".join([re.escape(special) for special in self.special_tokens])
+        if self.special_tokens_pattern:
             # Add parenthesis to include the special tokens in the list (via capturing group)
-            splits = re.split(b"(" + special_tokens_pattern + b")", bytestring)
+            splits = re.split(b"(" + self.special_tokens_pattern + b")", bytestring)
         else:
             splits = [bytestring]
 
@@ -72,9 +75,6 @@ class Tokenizer:
         return encoding
 
     def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
-        if self.special_tokens:
-            special_tokens_pattern = b"|".join([re.escape(special) for special in self.special_tokens])
-
         iterator = iter(iterable)
         buffer = bytes(next(iterator), "utf-8")
 
@@ -87,7 +87,7 @@ class Tokenizer:
                     break
 
             # If we find a special token, yield from it and everything before it
-            if self.special_tokens and (match := re.search(special_tokens_pattern, buffer)):
+            if self.special_tokens_pattern and (match := re.search(self.special_tokens_pattern, buffer)):
                 bytes_before_match = buffer[: match.start()]
                 buffer = buffer[match.end() :]
                 yield from self._encode_split(bytes_before_match)
