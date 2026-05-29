@@ -1,5 +1,4 @@
 from typing import Final
-from methodtools import lru_cache  # Use `methodtools` so that caches are not shared between class instances
 import os
 import pickle
 from collections.abc import Iterable, Iterator
@@ -34,6 +33,7 @@ class Tokenizer:
                     self.vocab[len(self.vocab)] = special_token
 
         self.token_to_token_id = {token: id for id, token in self.vocab.items()}
+        self.pretoken_to_token_ids: dict[bytes, list[str]] = {}
 
     @classmethod
     def from_file(cls, vocab_merges_filepath: str | os.PathLike, special_tokens: list[str] | None = None):
@@ -41,15 +41,24 @@ class Tokenizer:
             vocab, merges = pickle.load(f)
         return Tokenizer(vocab, merges, special_tokens)
 
-    @lru_cache(maxsize=100_000)
     def _encode_pretoken(self, pretoken: bytes) -> list[int]:
+        if ids := self.pretoken_to_token_ids.get(pretoken):
+            return ids
+
         pseq = get_initial_pseq(pretoken)
         for merge_pair in self.merges:
             if len(pseq) == 1:  # Stop the loop early if the pseq is just 1 token long
                 break
-            pseq = refresh_pseq(pseq, merge_pair, b"".join(merge_pair))
 
-        return [self.token_to_token_id[token] for token in pseq]
+            new_token = b"".join(merge_pair)
+            if new_token not in pretoken:  # Quick heuristic to avoid lots of calls to refresh_pseq
+                continue
+
+            pseq = refresh_pseq(pseq, merge_pair, new_token)
+
+        token_ids = [self.token_to_token_id[token] for token in pseq]
+        self.pretoken_to_token_ids[pretoken] = token_ids
+        return token_ids
 
     def _encode_split(self, split: bytes) -> list[int]:
         encoding = []

@@ -417,27 +417,6 @@ def test_encode_iterable_tinystories_matches_tiktoken():
     assert reference_tokenizer.decode(reference_ids) == corpus_contents
 
 
-def test__encode_pretoken_has_separate_caches_for_different_tokenizer_objects():
-    tokenizer_1 = Tokenizer.from_file(DATA_DIR / "TinyStoriesV2-GPT4-train_vocab_merges.pkl")
-    tokenizer_2 = Tokenizer.from_file(DATA_DIR / "TinyStoriesV2-GPT4-train_vocab_merges.pkl")
-
-    test_pretoken = b" there"
-    tokenizer_1._encode_pretoken(test_pretoken)
-    assert tokenizer_1._encode_pretoken.cache_info().hits == 0
-    assert tokenizer_1._encode_pretoken.cache_info().misses == 1
-    assert tokenizer_1._encode_pretoken.cache_info().currsize == 1
-
-    tokenizer_1._encode_pretoken(test_pretoken)
-    assert tokenizer_1._encode_pretoken.cache_info().hits == 1
-    assert tokenizer_1._encode_pretoken.cache_info().misses == 1
-    assert tokenizer_1._encode_pretoken.cache_info().currsize == 1
-
-    tokenizer_2._encode_pretoken(test_pretoken)
-    assert tokenizer_2._encode_pretoken.cache_info().hits == 0
-    assert tokenizer_2._encode_pretoken.cache_info().misses == 1
-    assert tokenizer_2._encode_pretoken.cache_info().currsize == 1
-
-
 def test_encode_iterable_correctly_handles_whitespace_pretokens(tmp_path: Path):
     test_strings = [
         "test\n\n",
