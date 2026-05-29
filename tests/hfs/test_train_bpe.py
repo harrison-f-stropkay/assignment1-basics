@@ -60,15 +60,15 @@ def test_pretokenize():
 def test_refresh_pseq():
     stale_pseq = (b"a", b"b", b"c", b"d")
     merge_pair = (b"a", b"b")
-    assert refresh_pseq(stale_pseq, merge_pair) == (b"ab", b"c", b"d")
+    assert refresh_pseq(stale_pseq, merge_pair, b"ab") == (b"ab", b"c", b"d")
 
     stale_pseq = (b"a", b"b", b"c", b"d")
     merge_pair = (b"a", b"a")
-    refresh_pseq(stale_pseq, merge_pair) == stale_pseq
+    refresh_pseq(stale_pseq, merge_pair, b"aa") == stale_pseq
 
     stale_pseq = (b"a", b"b", b"a", b"b", b"a", b"c")
     merge_pair = (b"a", b"b")
-    assert refresh_pseq(stale_pseq, merge_pair) == (b"ab", b"ab", b"a", b"c")
+    assert refresh_pseq(stale_pseq, merge_pair, b"ab") == (b"ab", b"ab", b"a", b"c")
 
 
 def test_get_pair_counter():
@@ -214,6 +214,7 @@ def test_update_caches():
 
     update_caches(
         merge_pair,
+        b"".join(merge_pair),
         pair_counter,
         pair_to_pretokens,
         pretoken_counter,

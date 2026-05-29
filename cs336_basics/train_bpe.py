@@ -63,20 +63,20 @@ def get_initial_tokens(special_tokens: list[str]) -> dict[int, bytes]:
     return vocab
 
 
-def refresh_pseq(stale_pseq: tuple[bytes, ...], merge_pair: tuple[bytes, bytes]) -> tuple[bytes, ...]:
-    new_token = b"".join(merge_pair)
+def refresh_pseq(stale_pseq: tuple[bytes, ...], merge_pair: tuple[bytes, bytes], new_token: bytes) -> tuple[bytes, ...]:
     fresh_pseq = []
     i = 0
     while i < len(stale_pseq):
         left = stale_pseq[i]
         right = stale_pseq[i + 1] if i < len(stale_pseq) - 1 else None
 
-        if (left, right) == merge_pair:
+        if left == merge_pair[0] and right == merge_pair[1]:
             fresh_pseq.append(new_token)
             i += 2
         else:
             fresh_pseq.append(left)
             i += 1
+
     return tuple(fresh_pseq)
 
 
@@ -112,6 +112,7 @@ def get_pairs(seq: tuple | list) -> tuple:
 
 def update_caches(
     merge_pair: tuple[bytes, bytes],
+    new_token: bytes,
     pair_counter: Counter[tuple[bytes, bytes]],
     pair_to_pretokens: defaultdict[tuple[bytes, bytes], set],
     pretoken_counter: Counter[bytes],
@@ -132,7 +133,7 @@ def update_caches(
                 pair_counter.pop(stale_pair)
                 pair_to_pretokens.pop(stale_pair)
 
-        fresh_pseq = refresh_pseq(pretoken_to_pseq[affected_pretoken], merge_pair)
+        fresh_pseq = refresh_pseq(pretoken_to_pseq[affected_pretoken], merge_pair, new_token)
         pretoken_to_pseq[affected_pretoken] = fresh_pseq
 
         for fresh_pair in get_pairs(fresh_pseq):
@@ -180,6 +181,7 @@ def train_bpe(
 
         update_caches(
             merge_pair,
+            new_token,
             pair_counter,
             pair_to_pretokens,
             pretoken_counter,

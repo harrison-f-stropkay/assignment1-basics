@@ -44,10 +44,11 @@ class Tokenizer:
     @lru_cache(maxsize=10_000_000)
     def _encode_pretoken(self, pretoken: bytes) -> list[int]:
         pseq = get_initial_pseq(pretoken)
-        for merge in self.merges:
+        for merge_pair in self.merges:
             if len(pseq) == 1:  # Stop the loop early if the pseq is just 1 token long
                 break
-            pseq = refresh_pseq(pseq, merge)
+            pseq = refresh_pseq(pseq, merge_pair, b"".join(merge_pair))
+
         return [self.token_to_token_id[token] for token in pseq]
 
     def _encode_split(self, split: bytes) -> list[int]:
