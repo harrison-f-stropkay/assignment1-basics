@@ -67,14 +67,11 @@ def refresh_pseq(stale_pseq: tuple[bytes, ...], merge_pair: tuple[bytes, bytes],
     fresh_pseq = []
     i = 0
     while i < len(stale_pseq):
-        left = stale_pseq[i]
-        right = stale_pseq[i + 1] if i < len(stale_pseq) - 1 else None
-
-        if left == merge_pair[0] and right == merge_pair[1]:
+        if i < len(stale_pseq) - 1 and stale_pseq[i] == merge_pair[0] and stale_pseq[i + 1] == merge_pair[1]:
             fresh_pseq.append(new_token)
             i += 2
         else:
-            fresh_pseq.append(left)
+            fresh_pseq.append(stale_pseq[i])
             i += 1
 
     return tuple(fresh_pseq)
