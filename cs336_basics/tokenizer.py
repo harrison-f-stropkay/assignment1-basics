@@ -41,7 +41,7 @@ class Tokenizer:
             vocab, merges = pickle.load(f)
         return Tokenizer(vocab, merges, special_tokens)
 
-    @lru_cache(maxsize=10_000_000)
+    @lru_cache(maxsize=100_000)
     def _encode_pretoken(self, pretoken: bytes) -> list[int]:
         pseq = get_initial_pseq(pretoken)
         for merge_pair in self.merges:
