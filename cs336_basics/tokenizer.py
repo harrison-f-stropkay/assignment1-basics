@@ -1,3 +1,4 @@
+from functools import lru_cache
 import os
 import pickle
 from collections.abc import Iterable, Iterator
@@ -36,18 +37,20 @@ class Tokenizer:
             vocab, merges = pickle.load(f)
         return Tokenizer(vocab, merges, special_tokens)
 
-    def encode_bytes(self, split: bytes) -> list[int]:
+    @lru_cache(maxsize=1_000_000)
+    def _encode_pretoken(self, pretoken: bytes) -> list[int]:
+        pseq = get_initial_pseq(pretoken)
+        for merge in self.merges:
+            if len(pseq) == 1:  # Stop the loop early if the pseq is just 1 token long
+                break
+            pseq = refresh_pseq(pseq, merge)
+        return [self.token_to_token_id[token] for token in pseq]
+
+    def _encode_split(self, split: bytes) -> list[int]:
         encoding = []
         pretokens = re.findall(PAT, split)
         for pretoken in pretokens:
-            pseq = get_initial_pseq(pretoken)
-            for merge in self.merges:
-                pseq = refresh_pseq(pseq, merge)
-                # Stop the loop early if the pseq is just 1 token long
-                if len(pseq) == 1:
-                    break
-            for token in pseq:
-                encoding.append(self.token_to_token_id[token])
+            encoding.extend(self._encode_pretoken(pretoken))
         return encoding
 
     def encode(self, text: str) -> list[int]:
@@ -65,7 +68,7 @@ class Tokenizer:
             if self.special_tokens and split in self.special_tokens:
                 encoding.append(self.token_to_token_id[split])
             else:
-                encoding += self.encode_bytes(split)
+                encoding += self._encode_split(split)
         return encoding
 
     def encode_iterable(self, iterable: Iterable[str]) -> Iterator[int]:
