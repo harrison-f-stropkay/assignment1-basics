@@ -438,6 +438,30 @@ def test__encode_pretoken_has_separate_caches_for_different_tokenizer_objects():
     assert tokenizer_2._encode_pretoken.cache_info().currsize == 1
 
 
+def test_encode_iterable_correctly_handles_whitespace_pretokens(tmp_path: Path):
+    test_strings = [
+        "test\n\n",
+        "test\n\n\n\n\nstring",
+        "test\n\tstring",
+        "test\n string",
+        "test\n      string",
+    ]
+
+    reference_tokenizer = tiktoken.get_encoding("gpt2")
+    tokenizer = get_tokenizer_from_vocab_merges_path(
+        vocab_path=VOCAB_PATH,
+        merges_path=MERGES_PATH,
+        special_tokens=["<|endoftext|>"],
+    )
+
+    for i, test_string in enumerate(test_strings):
+        tmp_file = tmp_path / str(i)
+        tmp_file.write_text(test_string, encoding="utf-8")
+
+        with open(tmp_file) as f:
+            assert list(tokenizer.encode_iterable(f)) == reference_tokenizer.encode(test_string)
+
+
 @pytest.mark.skipif(
     not sys.platform.startswith("linux"),
     reason="rlimit support for non-linux systems is spotty.",
