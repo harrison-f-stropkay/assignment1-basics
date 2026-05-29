@@ -1,8 +1,12 @@
+from tqdm import tqdm
+import os
 import time
 from pathlib import Path
 from cs336_basics.tokenizer import Tokenizer
+import numpy as np
 
 DATA_DIR = Path(__file__).parents[1] / "data"
+SPECIAL_TOKENS = ["<|endoftext|>"]
 
 
 def a():
@@ -67,44 +71,56 @@ def c():
     # Estimated time to tokenize the Pile dataset (825GB of text): 121.48265878626727 days
 
 
-# def d():
-#     def txt_to_token_ids(
-#         txt_path: Path,
-#         output_path: Path,
-#         vocab_merges_filepath: Path,
-#     ):
-#         tokenizer = Tokenizer.from_file(vocab_merges_filepath)
-#         token_ids = []
-#         with open(txt_path) as f:
-#             # from the example code:
-#             # Get total file size in bytes
-#             f.seek(0, os.SEEK_END)
-#             file_size = f.tell()
-#             f.seek(0)
+def d():
+    def txt_to_token_ids(
+        txt_path: Path,
+        output_path: Path,
+        vocab_merges_filepath: Path,
+    ):
+        tokenizer = Tokenizer.from_file(vocab_merges_filepath, special_tokens=SPECIAL_TOKENS)
+        with open(txt_path) as f:
+            # from the example code:
+            # Get total file size in bytes
+            f.seek(0, os.SEEK_END)
+            file_size = f.tell()
+            f.seek(0)
 
-#             with tqdm(total=file_size) as pbar:
-#                 for line in f:
-#                     pbar.update(len(bytes(line, "utf-8")))
-#                     token_ids.extend(tokenizer.encode(line))
+            with tqdm(total=file_size) as pbar:
 
-#         token_ids_numpy = np.array(token_ids, dtype=np.uint16)
-#         np.save(str(output_path), token_ids_numpy)
-#         print(f"Saved token ids to {output_path}")
+                def progress_generator(f):
+                    for token_id in tokenizer.encode_iterable(f):
+                        pbar.update(len(tokenizer.vocab[token_id]))
+                        yield token_id
 
-#     txt_to_token_ids(
-#         DATA_DIR / "TinyStoriesV2-GPT4-valid.txt",
-#         DATA_DIR / "TinyStoriesV2-GPT4-valid.npy",
-#         DATA_DIR / "TinyStoriesV2-GPT4-train_vocab_merges.pkl",
-#     )
-#     # txt_to_token_ids(
-#     #     DATA_DIR / "tester.txt",
-#     #     DATA_DIR / "tester.npy",
-#     #     DATA_DIR / "TinyStoriesV2-GPT4-train_vocab_merges.pkl",
-#     # )
+                arr = np.fromiter(progress_generator(f), dtype=np.uint16)
+
+                np.save(str(output_path), arr)
+                print(f"Saved token ids to {output_path}")
+
+    txt_to_token_ids(
+        DATA_DIR / "owt_train.txt",
+        DATA_DIR / "owt_train.npy",
+        DATA_DIR / "owt_train_vocab_merges.pkl",
+    )
+    # txt_to_token_ids(
+    #     DATA_DIR / "owt_valid.txt",
+    #     DATA_DIR / "owt_valid.npy",
+    #     DATA_DIR / "owt_train_vocab_merges.pkl",
+    # )
+    # txt_to_token_ids(
+    #     DATA_DIR / "TinyStoriesV2-GPT4-train.txt",
+    #     DATA_DIR / "TinyStoriesV2-GPT4-train.npy",
+    #     DATA_DIR / "TinyStoriesV2-GPT4-train_vocab_merges.pkl",
+    # )
+    # txt_to_token_ids(
+    #     DATA_DIR / "TinyStoriesV2-GPT4-valid.txt",
+    #     DATA_DIR / "TinyStoriesV2-GPT4-valid.npy",
+    #     DATA_DIR / "TinyStoriesV2-GPT4-train_vocab_merges.pkl",
+    # )
 
 
 if __name__ == "__main__":
-    a()
-    b()
-    c()
-    # d()
+    # a()
+    # b()
+    # c()
+    d()
