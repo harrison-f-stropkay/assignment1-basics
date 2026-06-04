@@ -374,7 +374,7 @@ def run_rmsnorm(
     weights: Float[Tensor, " d_model"],
     in_features: Float[Tensor, " ... d_model"],
 ) -> Float[Tensor, " ... d_model"]:
-    """Given the weights of a RMSNorm affine transform,
+    """Given the weights of a RMSNorm transform,
     return the output of running RMSNorm on the input features.
 
     Args:
