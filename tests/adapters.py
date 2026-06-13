@@ -40,7 +40,7 @@ def run_linear(
 
     linear = Linear(d_in, d_out)
     linear.load_state_dict({"W": weights})
-    return linear.forward(in_features)
+    return linear(in_features)
 
 
 def run_embedding(
@@ -64,7 +64,7 @@ def run_embedding(
 
     embedding = Embedding(vocab_size, d_model)
     embedding.load_state_dict({"W": weights})
-    return embedding.forward(token_ids)
+    return embedding(token_ids)
 
 
 def run_swiglu(
@@ -99,7 +99,7 @@ def run_swiglu(
             "w3_weight.W": w3_weight,
         }
     )
-    return swiglu.forward(in_features)
+    return swiglu(in_features)
 
 
 def run_scaled_dot_product_attention(
@@ -397,7 +397,7 @@ def run_rmsnorm(
     """
     rmsnorm = RMSNorm(d_model, eps)
     rmsnorm.load_state_dict({"W": weights})
-    return rmsnorm.forward(in_features)
+    return rmsnorm(in_features)
 
 
 def run_silu(in_features: Float[Tensor, " ..."]) -> Float[Tensor, " ..."]:
