@@ -1,3 +1,4 @@
+from cs336_basics.silu import SiLU
 from cs336_basics.linear import Linear
 from einops.einops import Tensor
 import einops
@@ -22,7 +23,7 @@ class SwiGLU(torch.nn.Module):
 
     def forward(self, x: Int[torch.Tensor, "b s d"]) -> Float[torch.Tensor, "b s d"]:
         w1_up_projection = self.w1_weight(x)
-        silu = w1_up_projection * torch.sigmoid(w1_up_projection)
+        silu = SiLU()(w1_up_projection)
         w3_up_projection = self.w3_weight(x)
         gated_up_projection = silu * w3_up_projection
         down_projection = self.w2_weight(gated_up_projection)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from cs336_basics.silu import SiLU
 from cs336_basics.softmax import Softmax
 from cs336_basics.rope import RoPE
 from cs336_basics.swiglu import SwiGLU
@@ -411,7 +412,7 @@ def run_silu(in_features: Float[Tensor, " ..."]) -> Float[Tensor, " ..."]:
         Float[Tensor,"..."]: of with the same shape as `in_features` with the output of applying
         SiLU to each element.
     """
-    raise NotImplementedError
+    return SiLU()(in_features)
 
 
 def run_get_batch(
@@ -451,7 +452,7 @@ def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, "
         softmax normalizing the specified `dim`.
     """
     softmax = Softmax()
-    return softmax(in_features, dim )
+    return softmax(in_features, dim)
 
 
 def run_cross_entropy(
