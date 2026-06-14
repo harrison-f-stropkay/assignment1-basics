@@ -18,8 +18,10 @@ class Embedding(torch.nn.Module):
         a = -3
         b = 3
         tensor = torch.empty((num_embeddings, embedding_dim), dtype=dtype)
-        self.W: Float[torch.Tensor, "v d"] = torch.nn.Parameter(torch.nn.init.trunc_normal_(tensor, mean, std, a, b))
+        self.weight: Float[torch.Tensor, "v d"] = torch.nn.Parameter(
+            torch.nn.init.trunc_normal_(tensor, mean, std, a, b)
+        )
         self.to(device)
 
     def forward(self, token_ids: Int[torch.Tensor, "... s"]) -> Float[torch.Tensor, "... s d"]:
-        return self.W[token_ids]
+        return self.weight[token_ids]

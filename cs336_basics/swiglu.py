@@ -20,15 +20,15 @@ class SwiGLU(torch.nn.Module):
         if d_ff is None:
             d_ff = 64 * int((8 / 3 * d_model) / 64)  # Round down to nearest multiple of 64 for hardware efficiency
 
-        self.w1_weight = Linear(d_model, d_ff)
-        self.w2_weight = Linear(d_ff, d_model)
-        self.w3_weight = Linear(d_model, d_ff)
+        self.w1 = Linear(d_model, d_ff)
+        self.w2 = Linear(d_ff, d_model)
+        self.w3 = Linear(d_model, d_ff)
         self.to(device)
 
     def forward(self, x: Int[torch.Tensor, "b s d"]) -> Float[torch.Tensor, "b s d"]:
-        w1_up_projection = self.w1_weight(x)
+        w1_up_projection = self.w1(x)
         silu = SiLU()(w1_up_projection)
-        w3_up_projection = self.w3_weight(x)
+        w3_up_projection = self.w3(x)
         gated_up_projection = silu * w3_up_projection
-        down_projection = self.w2_weight(gated_up_projection)
+        down_projection = self.w2(gated_up_projection)
         return down_projection

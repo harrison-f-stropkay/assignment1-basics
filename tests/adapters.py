@@ -43,7 +43,7 @@ def run_linear(
     """
 
     linear = Linear(d_in, d_out)
-    linear.load_state_dict({"W": weights})
+    linear.load_state_dict({"weight": weights})
     return linear(in_features)
 
 
@@ -67,7 +67,7 @@ def run_embedding(
     """
 
     embedding = Embedding(vocab_size, d_model)
-    embedding.load_state_dict({"W": weights})
+    embedding.load_state_dict({"weight": weights})
     return embedding(token_ids)
 
 
@@ -98,9 +98,9 @@ def run_swiglu(
     swiglu = SwiGLU(d_model)
     swiglu.load_state_dict(
         {
-            "w1_weight.W": w1_weight,
-            "w2_weight.W": w2_weight,
-            "w3_weight.W": w3_weight,
+            "w1.weight": w1_weight,
+            "w2.weight": w2_weight,
+            "w3.weight": w3_weight,
         }
     )
     return swiglu(in_features)
@@ -159,16 +159,16 @@ def run_multihead_self_attention(
         Float[Tensor, " ... sequence_length d_model"]: Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    mhsa = MultiheadSelfAttention(d_model, num_heads)
-    mhsa.load_state_dict(
+    attn = MultiheadSelfAttention(d_model, num_heads)
+    attn.load_state_dict(
         {
-            "W_q.W": q_proj_weight,
-            "W_k.W": k_proj_weight,
-            "W_v.W": v_proj_weight,
-            "W_o.W": o_proj_weight,
+            "q_proj.weight": q_proj_weight,
+            "k_proj.weight": k_proj_weight,
+            "v_proj.weight": v_proj_weight,
+            "output_proj.weight": o_proj_weight,
         }
     )
-    return mhsa(in_features)
+    return attn(in_features)
 
 
 def run_multihead_self_attention_with_rope(
@@ -208,16 +208,16 @@ def run_multihead_self_attention_with_rope(
         Float[Tensor, " ... sequence_length d_model"]: Tensor with the output of running your optimized, batched multi-headed attention
         implementation with the given QKV projection weights and input features.
     """
-    mhsa = MultiheadSelfAttention(d_model, num_heads, max_seq_len, theta)
-    mhsa.load_state_dict(
+    attn = MultiheadSelfAttention(d_model, num_heads, max_seq_len, theta)
+    attn.load_state_dict(
         {
-            "W_q.W": q_proj_weight,
-            "W_k.W": k_proj_weight,
-            "W_v.W": v_proj_weight,
-            "W_o.W": o_proj_weight,
+            "q_proj.weight": q_proj_weight,
+            "k_proj.weight": k_proj_weight,
+            "v_proj.weight": v_proj_weight,
+            "output_proj.weight": o_proj_weight,
         }
     )
-    return mhsa(in_features, token_positions)
+    return attn(in_features, token_positions)
 
 
 def run_rope(
@@ -314,19 +314,7 @@ def run_transformer_block(
         running the Transformer block on the input features while using RoPE.
     """
     block = TransformerBlock(d_model, num_heads, d_ff, max_seq_len, theta)
-    block.load_state_dict(
-        {
-            "mhsa.W_q.W": weights["attn.q_proj.weight"],
-            "mhsa.W_k.W": weights["attn.k_proj.weight"],
-            "mhsa.W_v.W": weights["attn.v_proj.weight"],
-            "mhsa.W_o.W": weights["attn.output_proj.weight"],
-            "rms_1.W": weights["ln1.weight"],
-            "ffn.w1_weight.W": weights["ffn.w1.weight"],
-            "ffn.w2_weight.W": weights["ffn.w2.weight"],
-            "ffn.w3_weight.W": weights["ffn.w3.weight"],
-            "rms_2.W": weights["ln2.weight"],
-        }
-    )
+    block.load_state_dict(weights)
     return block(in_features)
 
 
@@ -433,7 +421,7 @@ def run_rmsnorm(
         RMSNorm of the `in_features`.
     """
     rmsnorm = RMSNorm(d_model, eps)
-    rmsnorm.load_state_dict({"W": weights})
+    rmsnorm.load_state_dict({"weight": weights})
     return rmsnorm(in_features)
 
 

@@ -16,7 +16,7 @@ class RMSNorm(torch.nn.Module):
         super().__init__()
 
         self.register_buffer("eps", torch.tensor(eps), persistent=False)
-        self.W: Float[torch.Tensor, " d"] = torch.nn.Parameter(torch.ones(d_model))
+        self.weight: Float[torch.Tensor, " d"] = torch.nn.Parameter(torch.ones(d_model))
         self.to(device)
 
     def forward(self, x: Int[torch.Tensor, "b s d"]) -> Float[torch.Tensor, "b s d"]:
@@ -29,7 +29,7 @@ class RMSNorm(torch.nn.Module):
             reduce(torch.square(x), "b s d -> b s", "mean") + torch.as_tensor(self.eps)
         )  # do `torch.as_tensor` to pacify ty
 
-        result = einsum(rms, self.W, x, "b s, d, b s d  -> b s d")
+        result = einsum(rms, self.weight, x, "b s, d, b s d  -> b s d")
 
         # Return the result in the original dtype
         return result.to(in_dtype)

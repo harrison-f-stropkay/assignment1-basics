@@ -8,12 +8,12 @@ import torch
 class TransformerBlock(torch.nn.Module):
     def __init__(self, d_model: int, num_heads: int, d_ff: int, max_seq_len: int, theta: float):
         super().__init__()
-        self.rms_1 = RMSNorm(d_model)
-        self.mhsa = MultiheadSelfAttention(d_model, num_heads, max_seq_len, theta)
-        self.rms_2 = RMSNorm(d_model)
+        self.ln1 = RMSNorm(d_model)
+        self.attn = MultiheadSelfAttention(d_model, num_heads, max_seq_len, theta)
+        self.ln2 = RMSNorm(d_model)
         self.ffn = SwiGLU(d_model, d_ff)
 
     def forward(self, x: Tensor) -> Tensor:
-        x += self.mhsa(self.rms_1(x))
-        x += self.ffn(self.rms_2(x))
+        x += self.attn(self.ln1(x))
+        x += self.ffn(self.ln2(x))
         return x
