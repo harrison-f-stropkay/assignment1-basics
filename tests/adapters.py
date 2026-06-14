@@ -1,4 +1,5 @@
 from __future__ import annotations
+from cs336_basics.transformer_block import TransformerBlock
 from cs336_basics.multihead_self_attention import MultiheadSelfAttention
 from cs336_basics.scaled_dot_product_attention import ScaledDotProductAttention
 from cs336_basics.silu import SiLU
@@ -312,7 +313,21 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features while using RoPE.
     """
-    raise NotImplementedError
+    block = TransformerBlock(d_model, num_heads, d_ff, max_seq_len, theta)
+    block.load_state_dict(
+        {
+            "mhsa.W_q.W": weights["attn.q_proj.weight"],
+            "mhsa.W_k.W": weights["attn.k_proj.weight"],
+            "mhsa.W_v.W": weights["attn.v_proj.weight"],
+            "mhsa.W_o.W": weights["attn.output_proj.weight"],
+            "rms_1.W": weights["ln1.weight"],
+            "ffn.w1_weight.W": weights["ffn.w1.weight"],
+            "ffn.w2_weight.W": weights["ffn.w2.weight"],
+            "ffn.w3_weight.W": weights["ffn.w3.weight"],
+            "rms_2.W": weights["ln2.weight"],
+        }
+    )
+    return block(in_features)
 
 
 def run_transformer_lm(
