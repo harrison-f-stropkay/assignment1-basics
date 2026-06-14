@@ -11,11 +11,15 @@ class SwiGLU(torch.nn.Module):
     def __init__(
         self,
         d_model: int,
+        d_ff: int | None = None,
         device: torch.device | None = None,
         dtype: torch.dtype | None = None,
     ) -> None:
         super().__init__()
-        d_ff: int = 64 * int((8 / 3 * d_model) / 64)  # Round down to nearest multiple of 64 f{or hardware efficiency
+
+        if d_ff is None:
+            d_ff = 64 * int((8 / 3 * d_model) / 64)  # Round down to nearest multiple of 64 for hardware efficiency
+
         self.w1_weight = Linear(d_model, d_ff)
         self.w2_weight = Linear(d_ff, d_model)
         self.w3_weight = Linear(d_model, d_ff)
