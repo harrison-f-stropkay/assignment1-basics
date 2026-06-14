@@ -1,4 +1,5 @@
 from __future__ import annotations
+from cs336_basics.transformer_lm import TransformerLM
 from cs336_basics.transformer_block import TransformerBlock
 from cs336_basics.multihead_self_attention import MultiheadSelfAttention
 from cs336_basics.scaled_dot_product_attention import ScaledDotProductAttention
@@ -397,7 +398,9 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    model = TransformerLM(vocab_size, context_length, num_layers, d_model, num_heads, d_ff, rope_theta)
+    model.load_state_dict(weights)
+    return model(in_indices)
 
 
 def run_rmsnorm(
