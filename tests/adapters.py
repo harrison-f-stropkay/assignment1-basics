@@ -1,4 +1,5 @@
 from __future__ import annotations
+from cs336_basics.adamw import AdamW
 from cs336_basics.cross_entropy import CrossEntropy
 from cs336_basics.transformer_lm import TransformerLM
 from cs336_basics.transformer_block import TransformerBlock
@@ -517,7 +518,7 @@ def get_adamw_cls() -> Any:
     """
     Returns a torch.optim.Optimizer that implements AdamW.
     """
-    raise NotImplementedError
+    return AdamW
 
 
 def run_get_lr_cosine_schedule(
